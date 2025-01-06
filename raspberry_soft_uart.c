@@ -10,7 +10,7 @@
 #include <linux/tty_flip.h>
 #include <linux/version.h>
 
-static irq_handler_t handle_rx_start(unsigned int irq, void* device, struct pt_regs* registers);
+static irqreturn_t handle_rx_start(unsigned int irq, void* device);
 static enum hrtimer_restart handle_tx(struct hrtimer* timer);
 static enum hrtimer_restart handle_rx(struct hrtimer* timer);
 static void receive_character(unsigned char character);
@@ -129,7 +129,7 @@ int raspberry_soft_uart_close(void)
 int raspberry_soft_uart_set_baudrate(const int baudrate) 
 {
   period = ktime_set(0, 1000000000/baudrate);
-  gpio_set_debounce(gpio_rx, 1000/baudrate/2);
+  gpiod_set_debounce(gpio_to_desc(gpio_rx), 1000/baudrate/2);
   return 1;
 }
 
@@ -178,13 +178,13 @@ int raspberry_soft_uart_get_tx_queue_size(void)
  * If we are waiting for the RX start bit, then starts the RX timer. Otherwise,
  * does nothing.
  */
-static irq_handler_t handle_rx_start(unsigned int irq, void* device, struct pt_regs* registers)
+static irqreturn_t handle_rx_start(unsigned int irq, void* device)
 {
   if (rx_bit_index == -1)
   {
     hrtimer_start(&timer_rx, ktime_set(0, period / 2), HRTIMER_MODE_REL);
   }
-  return (irq_handler_t) IRQ_HANDLED;
+  return (irqreturn_t) IRQ_HANDLED;
 }
 
 
