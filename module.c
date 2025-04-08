@@ -76,6 +76,7 @@ static int __init soft_uart_init(void)
   if (!raspberry_soft_uart_init(gpio_tx, gpio_rx))
   {
     printk(KERN_ALERT "soft_uart: Failed initialize GPIO.\n");
+    raspberry_soft_uart_finalize();
     return -ENOMEM;
   }
 
